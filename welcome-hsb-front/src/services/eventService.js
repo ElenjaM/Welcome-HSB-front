@@ -1,42 +1,32 @@
-// services/eventService.js
-
-// Lokale Eventdaten aus einer JSON-Datei importieren
-import localEvents from "../data/events.json";
-
 /**
- * Diese Funktion filtert lokale Veranstaltungen anhand eines Filterobjekts.
- * Sie simuliert den Abruf von Events über eine API.
- *
- * @param {Object} filter - Das Filterobjekt mit:
- *   - categories: Array von ausgewählten Kategorien (Topics)
- *   - dateFrom: Startdatum im Format YYYY-MM-DD
- *   - dateTo: Enddatum im Format YYYY-MM-DD
- * @returns {Promise<Array>} Gefilterte Events
+ * Holt Events von einem lokalen API-Server, z. B. von http://localhost:3001/api/events
  */
 export async function fetchEvents(filter) {
-  return new Promise((resolve) => {
-    // Filterlogik: durchlaufe alle lokalen Events
-    const result = localEvents.filter((event) => {
-      const eventDate = new Date(event.startdate); // Datum der Veranstaltung
+  try {
+    // Hole alle Events von der API
+    // Hier wird die URL der API angegeben. Diese sollte mit dem Backend übereinstimmen.
+    const response = await fetch("http://localhost:3001/api/events");
+    // Überprüfe, ob die Antwort erfolgreich war
+    // Wenn nicht, wird ein Fehler geworfen
+    if (!response.ok) {
+      throw new Error("Netzwerkantwort war nicht ok");
+    }
+    // Konvertiere die Antwort in JSON
+    const allEvents = await response.json();
 
-      // Kategorievergleich:
-      // Wenn keine Kategorien ausgewählt wurden, akzeptiere alle Events.
-      // Andernfalls prüfe, ob das Event-Topic in den gewählten Kategorien enthalten ist.
+    // Clientseitige Filterung nach Datum & Kategorien
+    return allEvents.filter((event) => {
+      const eventDate = new Date(event.Datum); 
       const matchesCategory =
-        filter.categories.length === 0 ||
-        filter.categories.includes(event.topic);
-
-      // Datumsvergleich:
-      // Das Event muss zwischen dateFrom und dateTo liegen.
+        filter.categories.length === 0 || filter.categories.includes(event.Topic);
       const matchesDate =
         eventDate >= new Date(filter.dateFrom) &&
         eventDate <= new Date(filter.dateTo);
 
-      // Event wird nur zurückgegeben, wenn beide Bedingungen erfüllt sind
       return matchesCategory && matchesDate;
     });
-
-    // Rückgabe der gefilterten Ergebnisse über das Promise
-    resolve(result);
-  });
+  } catch (error) {
+    console.error("Fehler beim Laden der Events von der API:", error);
+    return [];
+  }
 }

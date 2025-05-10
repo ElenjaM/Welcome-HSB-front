@@ -1,9 +1,12 @@
 // React Hooks und Komponenten importieren
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { EventCard } from "./EventCard";              // Komponente zur Darstellung einzelner Events
 import { FilterPanel } from "./FilterPanel";          // Komponente für das Filter-Menü
+import { EventWindow } from "./EventWindow"; // Popup-Fenster für Event-Details
 import { fetchEvents } from "../../services/eventService"; // Funktion zum Laden der Events (lokal oder API)
 import { Link } from 'react-router-dom'; // Importiere Link für die Navigation
+
+
 
 // Hauptkomponente für die Eventseite
 export default function EventPage() {
@@ -21,6 +24,9 @@ export default function EventPage() {
 
   // Konstante: wie viele Events pro Seite angezeigt werden sollen
   const eventsPerPage = 4;
+
+  // Zustand für die Sichtbarkeit des Event-Fensters
+  const [selectedEvent, setSelectedEvent] = useState(null); // neues State
 
   // Filterzustand mit Start- und Enddatum sowie gewählten Kategorien
   const [filter, setFilter] = useState({
@@ -47,7 +53,7 @@ export default function EventPage() {
 
   // Filtert Events lokal anhand Suchbegriff (in Titel oder Thema)
   const filteredEvents = events.filter((event) => {
-    const title = event.title?.toLowerCase() || "";
+    const title = event.Titel?.toLowerCase() || "";
     const topic = event.topic?.toLowerCase() || "";
     const term = searchTerm.toLowerCase();
 
@@ -125,7 +131,7 @@ export default function EventPage() {
             </p>
           ) : (
             paginatedEvents.map((event, index) => (
-              <EventCard key={index} event={event} />
+              <EventCard key={index} event={event} onClick={() => setSelectedEvent(event)} />
             ))
           )}
         </section>
@@ -162,6 +168,14 @@ export default function EventPage() {
           </div>
         )}
       </main>
+
+      {/* Popup-Fenster mit Event-Details */}
+{selectedEvent && (
+  <EventWindow
+    event={selectedEvent}
+    onClose={() => setSelectedEvent(null)}
+  />
+)}
 
       {/* Footer-Bereich mit Logo, Suche und Navigation */}
       <footer

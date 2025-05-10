@@ -1,20 +1,28 @@
-// Importiere React sowie PropTypes zur Laufzeit-Typprüfung
-import React from "react";
+// Import der benötigten React-Bibliotheken
 import PropTypes from "prop-types";
 
-// Diese Komponente zeigt eine einzelne Veranstaltungskarte an
-export function EventCard({ event }) {
-  // Wandelt das Startdatum der Veranstaltung in ein Datum-Objekt um
-  const date = new Date(event.startdate);
-
-  // Formatierung im deutschen Datumsformat (z. B. 03.05.2025)
+// Komponente zur Darstellung einer einzelnen Veranstaltungskarte
+export function EventCard({ event, onClick }) {
+  // Datum der Veranstaltung parsen und im deutschen Format anzeigen
+  const date = new Date(event.Datum);
   const formattedDate = date.toLocaleDateString("de-DE");
 
+  // Startzeit optional kürzen auf "hh:mm"
+  let formattedTime = "";
+  if (event.Startzeit) {
+    const [hours, minutes] = event.Startzeit.split(":");
+    formattedTime = `${hours}:${minutes}`;
+  }
+
   return (
-    // Karte mit flexibler Anordnung: auf Mobil stacked, auf größer nebeneinander
-    <div className="flex items-center bg-gray-100 rounded-md p-3 gap-3 flex-wrap sm:flex-nowrap w-full max-w-4xl mx-auto shadow-md">
-      
-      {/* Linker Kreis mit Icon */}
+    // Gesamte Karte klickbar machen
+    <div
+      onClick={() => onClick(event)} // Klick löst onClick-Funktion aus
+      // Mouse Cursor ändern
+      // Hover-Effekt: Hintergrundfarbe ändern
+      className="cursor-pointer hover:bg-gray-200 transition-colors duration-200 flex items-center bg-gray-100 rounded-md p-3 gap-3 flex-wrap sm:flex-nowrap w-full max-w-4xl mx-auto shadow-md"
+    >
+      {/* Linker Bereich mit rotem Kreis und Event-Icon */}
       <div className="flex-shrink-0">
         <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-900 rounded-full flex items-center justify-center">
           <img
@@ -25,27 +33,33 @@ export function EventCard({ event }) {
         </div>
       </div>
 
-      {/* Rechter Textbereich */}
+      {/* Rechter Bereich mit Titel, Datum und optionalem Thema */}
       <div className="flex flex-col text-left w-full">
-        {/* Titelzeile: kleiner auf Handy, größer auf Desktop */}
         <h2 className="text-base sm:text-xl font-semibold tracking-wide uppercase">
-          {event.title} <span className="font-light">| {formattedDate}</span>
+          {event.Titel}{" "}
+          <span className="font-light">
+            | {formattedDate}
+            {formattedTime && ` – ${formattedTime} Uhr`}
+          </span>
         </h2>
-
-        {/* Thema / Kategorie */}
+        {/* Falls ein Topic vorhanden ist, wird es angezeigt */}
         <p className="text-xs sm:text-sm text-gray-700 mt-1">
-          {event.topic || ""}
+          {event.Topic || ""}
         </p>
       </div>
     </div>
   );
 }
 
-// PropTypes zur Laufzeit-Typprüfung
+// Typüberprüfung der Props – gibt dem Entwickler früh Feedback bei falscher Verwendung
+// Definiert die Struktur der erwarteten Props
+// event: Objekt mit den Eigenschaften Titel, Datum, Startzeit und Topic  
 EventCard.propTypes = {
   event: PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    startdate: PropTypes.string.isRequired,
-    topic: PropTypes.string
-  }).isRequired
+    Titel: PropTypes.string.isRequired,      // Pflichtfeld: Titel der Veranstaltung
+    Datum: PropTypes.string.isRequired,      // Pflichtfeld: Veranstaltungsdatum
+    Startzeit: PropTypes.string,             // Optional: Startzeit
+    Topic: PropTypes.string,                 // Optional: Thema/Kategorie
+  }).isRequired,
+  onClick: PropTypes.func.isRequired,        // Pflicht: Funktion zum Öffnen z. B. eines Modals
 };
